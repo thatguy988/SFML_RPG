@@ -3,7 +3,9 @@ BUILDDIR := build
 INCLUDEDIR := include
 LIBDIR := lib
 
-OBJS := $(BUILDDIR)/main.o $(BUILDDIR)/GameWindow.o
+# List all the source files here
+SRCS := $(wildcard $(SRCDIR)/*.cpp)
+OBJS := $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
 EXE := $(BUILDDIR)/main
 
 CPPFLAGS := -I$(INCLUDEDIR) -DSFML_STATIC
@@ -22,5 +24,3 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 clean:
 	rm -f $(EXE) $(OBJS)
 
-$(BUILDDIR)/GameWindow.o: $(SRCDIR)/view/GameWindow.cpp
-	g++ -c $< -o $@ $(CPPFLAGS)
