@@ -1,10 +1,15 @@
 #include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 #include <SFML/Graphics.hpp>
 #include "states/MainMenuState.hpp"
 #include "states/PlatformingState.hpp"
 #include "states/PauseMenuState.hpp"
 #include "states/GameState.hpp"
 #include "states/CombatState.hpp"
+#include "leveldata.hpp" 
+
 
 int main()
 {
@@ -14,24 +19,20 @@ int main()
 
     GameState* currentState = nullptr;
     GameState* pState = nullptr;
-
     GameState* cState = nullptr;
 
 
-    PlatformingState platformingState(currentState, pState, cState);
 
+    std::vector<std::string> levelData = getLevelData(); // Retrieve level data
+
+    PlatformingState platformingState(currentState, pState, cState, levelData);
     CombatState combatState(currentState, &platformingState);
-
-    
-
     MainMenuState mainMenuState(currentState, &platformingState);
     PauseMenuState pauseMenuState(currentState, &platformingState, &mainMenuState);
-
 
     pState = &pauseMenuState;
     cState = &combatState;
     currentState = &mainMenuState;
-    
 
     sf::Clock clock;
 
@@ -46,18 +47,43 @@ int main()
 
         float deltaTime = clock.restart().asSeconds();
 
-        currentState->handleInput(window);
-        currentState->update(deltaTime);
-
         window.clear(sf::Color::Black);
 
-        currentState->render(window);
+        switch (currentState->getState())
+        {
+            case 0://main menu
+                currentState->handleInput(window);
+                currentState->update(deltaTime);
+                currentState->render(window);
+                break;
+
+            case 1://platforming state
+                currentState->handleInput(window);
+                currentState->update(deltaTime);
+                currentState->render(window);
+                
+                break;
+
+            case 2://combat
+                currentState->handleInput(window);
+                currentState->update(deltaTime);
+                currentState->render(window);
+                break;
+
+            case 3://pause menu
+                currentState->handleInput(window);
+                currentState->update(deltaTime);
+                currentState->render(window);
+                break;
+
+
+            default:
+                break;
+        }
 
         window.display();
     }
 
     return 0;
 }
-
-
 

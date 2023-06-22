@@ -44,7 +44,17 @@ MainMenuState::MainMenuState(GameState*& currentState, PlatformingState* platfor
     spaceKeyPressed = false;
 
     selectedOption = 0;
+
+    
 }
+
+int MainMenuState::getState() const
+{
+    return 0; // Return the state value for the main menu state
+}
+
+
+
 
 void MainMenuState::handleInput(sf::RenderWindow& window)
 {

@@ -3,6 +3,8 @@
 
 #include "GameState.hpp"
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include <string>
 
 class PlatformingState : public GameState
 {
@@ -11,19 +13,28 @@ private:
     float playerSpeed;
     float jumpSpeed;
     bool isJumping;
+    bool leftside;
+    bool rightside;
     bool spaceKeyPressed;
     sf::RectangleShape ground;
+
+    std::vector<std::string> levelData;
+
+
 
     GameState*& currentState;
     GameState*& pState;
     GameState*& cState;
 
 public:
-    PlatformingState(GameState*& currentState, GameState*& pState, GameState*& cState);
+    PlatformingState(GameState*& currentState, GameState*& pState, GameState*& cState, const std::vector<std::string>& levelData);
     void setSpaceKeyPressed(bool value);
     void handleInput(sf::RenderWindow& window) override;
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
+    int getState() const override;
+
+    
 };
 
 #endif // PLATFORMINGSTATE_HPP

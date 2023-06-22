@@ -5,6 +5,13 @@ CombatState::CombatState(GameState*& currentState, PlatformingState* platforming
     // Initialize member variables and setup your combat state
 }
 
+int CombatState::getState() const
+{
+    return 2; // Return the state value for the main menu state
+}
+
+
+
 CombatState::~CombatState()
 {
     // Clean up any dynamically allocated resources

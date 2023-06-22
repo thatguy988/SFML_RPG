@@ -46,6 +46,11 @@ PauseMenuState::PauseMenuState(GameState*& currentState, PlatformingState* platf
     selectedOption = 0;
 }
 
+int PauseMenuState::getState() const
+{
+    return 3; // Return the state value for the main menu state
+}
+
 void PauseMenuState::handleInput(sf::RenderWindow& window)
 {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))

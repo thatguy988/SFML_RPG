@@ -20,6 +20,7 @@ public:
     virtual void update(float deltaTime) override;
     virtual void render(sf::RenderWindow& window) override;
     static void transitionToPlatformingState(GameState*& currentState, GameState* platformingState);
+    int getState() const override;
 
 };
 
