@@ -28,6 +28,10 @@ PlatformingState::PlatformingState(GameState*& currentState, GameState*& pState,
     
 }
 
+void PlatformingState::setLevelData(const std::vector<std::string>& data)
+{
+    levelData = data;
+}
 
 int PlatformingState::getState() const
 {
@@ -86,6 +90,50 @@ void PlatformingState::handleInput(sf::RenderWindow& window)
 
     player.move(movement);
 }
+
+std::string PlatformingState::getPlayerExitDirection(const sf::RenderWindow& window) const
+{
+    sf::Vector2f playerPosition = player.getPosition();
+    sf::Vector2u windowSize = window.getSize();
+
+    std::string exitDirection;
+
+    if (playerPosition.x < 0) {
+        // Player exited on the left side of the window
+        exitDirection = "left";
+    } else if (playerPosition.x > windowSize.x) {
+        // Player exited on the right side of the window
+        exitDirection = "right";
+    } else if (playerPosition.y < 0) {
+        // Player exited on the top side of the window
+        exitDirection = "up";
+    } else if (playerPosition.y > windowSize.y) {
+        // Player exited on the bottom side of the window
+        exitDirection = "down";
+    }
+
+    return exitDirection;
+}
+
+void PlatformingState::updatePlayerPosition(const std::string& exitDirection,const sf::RenderWindow& window)
+{
+    sf::Vector2u windowSize = window.getSize();
+    sf::Vector2f playerPosition = player.getPosition();
+    sf::Vector2f newPosition;
+
+    if (exitDirection == "left") {
+        newPosition = sf::Vector2f(windowSize.x, playerPosition.y);
+    } else if (exitDirection == "right") {
+        newPosition = sf::Vector2f(0, playerPosition.y);
+    } else if (exitDirection == "up") {
+        newPosition = sf::Vector2f(playerPosition.x, windowSize.y);
+    } else if (exitDirection == "down") {
+        newPosition = sf::Vector2f(playerPosition.x, 0);
+    }
+
+    player.setPosition(newPosition);
+}
+
 
 
 

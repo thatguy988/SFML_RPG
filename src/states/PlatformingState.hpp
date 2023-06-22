@@ -33,6 +33,12 @@ public:
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
     int getState() const override;
+    void setLevelData(const std::vector<std::string>& data);
+    std::string getPlayerExitDirection(const sf::RenderWindow& window) const;
+    void updatePlayerPosition(const std::string& exitDirection, const sf::RenderWindow& window);
+
+
+
 
     
 };

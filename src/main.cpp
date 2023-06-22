@@ -21,9 +21,9 @@ int main()
     GameState* pState = nullptr;
     GameState* cState = nullptr;
 
-
-
-    std::vector<std::string> levelData = getLevelData(); // Retrieve level data
+    std::string nodeId = "Node1";
+    std::vector<std::string> levelData = getLevelData(nodeId);
+    
 
     PlatformingState platformingState(currentState, pState, cState, levelData);
     CombatState combatState(currentState, &platformingState);
@@ -52,31 +52,45 @@ int main()
         switch (currentState->getState())
         {
             case 0://main menu
+            {
                 currentState->handleInput(window);
                 currentState->update(deltaTime);
                 currentState->render(window);
                 break;
-
+            }
             case 1://platforming state
-                currentState->handleInput(window);
-                currentState->update(deltaTime);
-                currentState->render(window);
+            {
                 
-                break;
+                currentState->handleInput(window);
+                currentState->update(deltaTime);
+                std::string exitDirection = platformingState.getPlayerExitDirection(window);
+                std::string nextNodeId = getNextNode(nodeId, exitDirection);
 
+                if (!nextNodeId.empty()) 
+                {
+                    nodeId = nextNodeId;
+                    levelData = getLevelData(nodeId);
+                    platformingState.setLevelData(levelData);
+                    platformingState.updatePlayerPosition(exitDirection,window);
+                }
+                currentState->render(window);
+                break;
+            }
             case 2://combat
+            {
                 currentState->handleInput(window);
                 currentState->update(deltaTime);
                 currentState->render(window);
                 break;
-
+            }
             case 3://pause menu
+            {
                 currentState->handleInput(window);
                 currentState->update(deltaTime);
                 currentState->render(window);
                 break;
 
-
+            }
             default:
                 break;
         }
@@ -86,4 +100,3 @@ int main()
 
     return 0;
 }
-
