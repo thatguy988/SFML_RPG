@@ -19,6 +19,14 @@ private:
     sf::RectangleShape ground;
 
     std::vector<std::string> levelData;
+    sf::Clock jumpTimer; // Added jumpTimer declaration
+    float gravity;
+    float jumpAcceleration;
+    float maxJumpVelocity;
+    sf::Vector2f movement;
+    
+
+
 
 
 
@@ -36,6 +44,7 @@ public:
     void setLevelData(const std::vector<std::string>& data);
     std::string getPlayerExitDirection(const sf::RenderWindow& window) const;
     void updatePlayerPosition(const std::string& exitDirection, const sf::RenderWindow& window);
+    void jumping(float deltaTime);
 
 
 

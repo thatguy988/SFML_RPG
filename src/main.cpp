@@ -73,6 +73,7 @@ int main()
                     platformingState.setLevelData(levelData);
                     platformingState.updatePlayerPosition(exitDirection,window);
                 }
+                
                 currentState->render(window);
                 break;
             }

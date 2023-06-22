@@ -9,23 +9,23 @@ PlatformingState::PlatformingState(GameState*& currentState, GameState*& pState,
     // Initialize player and ground
     player.setSize(sf::Vector2f(50.0f, 50.0f));
     player.setFillColor(sf::Color::Red);
-    player.setPosition(100.0f, 150.0f);
+    player.setPosition(100.0f, 400.0f);
 
     playerSpeed = 5.0f;
-    jumpSpeed = 35.0f;
+    jumpSpeed = 0.0f;
     isJumping = false;
-    spaceKeyPressed = true;
+    spaceKeyPressed = false;
+    gravity = 175.0f;
+    jumpAcceleration = 50.0f;
+    maxJumpVelocity = 200.0f;
+    
+
+
+
 
     leftside = false;
     rightside = false;
 
-    //ground.setSize(sf::Vector2f(800.0f, 50.0f));
-    //ground.setFillColor(sf::Color::Green);
-    //ground.setPosition(0.0f, 550.0f);
-
-
-
-    
 }
 
 void PlatformingState::setLevelData(const std::vector<std::string>& data)
@@ -55,10 +55,12 @@ void PlatformingState::handleInput(sf::RenderWindow& window)
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && !leftside)
     {
         movement.x -= playerSpeed;
+        rightside = false;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && !rightside)
     {
         movement.x += playerSpeed;
+        leftside = false;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
     {
@@ -67,6 +69,8 @@ void PlatformingState::handleInput(sf::RenderWindow& window)
             movement.y -= jumpSpeed;
             isJumping = true;
             spaceKeyPressed = true;
+            jumpTimer.restart();
+
         
         }
     }
@@ -74,19 +78,20 @@ void PlatformingState::handleInput(sf::RenderWindow& window)
     {
         spaceKeyPressed = false;
     }
+    //add offset to sides of window to go offscreen
 
-    // Perform bounds checking to prevent player from moving outside the window
     sf::FloatRect playerBounds = player.getGlobalBounds();
-    // sf::FloatRect windowBounds(0.0f, 0.0f, window.getSize().x, window.getSize().y);
+    sf::FloatRect windowBounds(-5.0f, -5.0f, window.getSize().x + 65.0f, window.getSize().y + 65.0f);
 
-    // if (!windowBounds.contains(playerBounds.left + movement.x, playerBounds.top) ||
-    //     !windowBounds.contains(playerBounds.left + playerBounds.width + movement.x, playerBounds.top) ||
-    //     !windowBounds.contains(playerBounds.left + playerBounds.width + movement.x, playerBounds.top + playerBounds.height) ||
-    //     !windowBounds.contains(playerBounds.left + movement.x, playerBounds.top + playerBounds.height))
-    // {
-    //     // Adjust movement to prevent moving outside the window
-    //     movement.x = 0.0f;
-    // }
+    if (!windowBounds.contains(playerBounds.left + movement.x, playerBounds.top) ||
+        !windowBounds.contains(playerBounds.left + playerBounds.width + movement.x, playerBounds.top) ||
+        !windowBounds.contains(playerBounds.left + playerBounds.width + movement.x, playerBounds.top + playerBounds.height) ||
+        !windowBounds.contains(playerBounds.left + movement.x, playerBounds.top + playerBounds.height))
+    {
+        // Adjust movement to prevent moving outside the window
+        movement.x = 0.0f;
+    }
+
 
     player.move(movement);
 }
@@ -134,14 +139,39 @@ void PlatformingState::updatePlayerPosition(const std::string& exitDirection,con
     player.setPosition(newPosition);
 }
 
+void PlatformingState::jumping(float deltaTime)
+{
+
+    sf::Vector2f movement(0.0f, gravity * deltaTime);
+    if(!isJumping && spaceKeyPressed)
+    {
+    // Apply jump acceleration until reaching maximum jump velocity
+        if (jumpTimer.getElapsedTime().asSeconds() < 0.45f) // Adjust the duration as needed
+        {
+            jumpSpeed += jumpAcceleration * deltaTime;
+            jumpSpeed = std::min(jumpSpeed, maxJumpVelocity);
+
+            movement.y -= jumpSpeed;
+    }
+    else
+    {
+        isJumping = false;
+        jumpSpeed = 0.0f;
+    }
+    }
+    player.move(movement);
+}
 
 
 
 void PlatformingState::update(float deltaTime)
 {
-    float gravity = 150.0f;
-    sf::Vector2f movement(0.0f, gravity * deltaTime);
-    player.move(movement);
+    
+
+
+    jumping(deltaTime);    
+    
+   
 
     // Perform bounds checking to prevent player from falling through the ground
     sf::FloatRect playerBounds = player.getGlobalBounds();
@@ -173,7 +203,7 @@ void PlatformingState::update(float deltaTime)
                         // Adjust horizontal position
                         if (dx == std::abs(tileBounds.left - playerRight))
                         {
-                            player.move(-dx, 0.0f);
+                            player.move(-dx, gravity * deltaTime);
                             rightside = true;
                             
                             
@@ -181,7 +211,7 @@ void PlatformingState::update(float deltaTime)
                         }
                         else 
                         {
-                            player.move(dx, 0.0f);
+                            player.move(dx, gravity * deltaTime);
                             leftside = true;
                             
                             
@@ -190,23 +220,35 @@ void PlatformingState::update(float deltaTime)
                     }
                     else
                     {   
-                        leftside = false;
-                        rightside = false;
+                        //leftside = false;
+                        //rightside = false;
                         
                         
                         // Adjust vertical position
                         if (dy == std::abs(tileBounds.top - playerBottom))
                         {
-                            player.move(0.0f, -dy);
+                            movement.y = -dy;
+                            player.move(movement);
+                            //player.move(0.0f, -dy);
                             isJumping = false; // Reset jumping flag if player lands on a tile
                             
                         }
                         else
-                            player.move(0.0f, dy);
+                        {
+                            movement.y = dy;
+                            player.move(movement);
+                            //player.move(0.0f, dy);
+                        }
+                        
                             
                     }
                     
                     
+                }
+                else
+                {
+                    leftside = false;
+                    rightside = false;
                 }
             }
         }
@@ -234,7 +276,16 @@ void PlatformingState::render(sf::RenderWindow& window)
             }
         }
     }
+    
+
 
     
 }
+
+
+
+
+
+
+
 
