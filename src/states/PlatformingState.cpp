@@ -1,15 +1,15 @@
 #include "PlatformingState.hpp"
 #include "PauseMenuState.hpp"
+
+
 #include <algorithm>
 
 
 PlatformingState::PlatformingState(GameState*& currentState, GameState*& pState, GameState*& cState, const std::vector<std::string>& levelData)
-    : currentState(currentState), pState(pState), cState(cState), levelData(levelData)
+    : currentState(currentState), pState(pState), cState(cState), levelData(levelData),
+    player("Player", 100, {"Water"}, {"Fire"}, sf::Vector2f(50.0f, 50.0f), sf::Color::Red, sf::Vector2f(100.0f, 400.0f))
+
 {
-    // Initialize player and ground
-    player.setSize(sf::Vector2f(50.0f, 50.0f));
-    player.setFillColor(sf::Color::Red);
-    player.setPosition(100.0f, 400.0f);
 
     playerSpeed = 5.0f;
     jumpSpeed = 0.0f;
@@ -19,12 +19,9 @@ PlatformingState::PlatformingState(GameState*& currentState, GameState*& pState,
     jumpAcceleration = 50.0f;
     maxJumpVelocity = 200.0f;
     
-
-
-
-
     leftside = false;
     rightside = false;
+    
 
 }
 
@@ -80,7 +77,7 @@ void PlatformingState::handleInput(sf::RenderWindow& window)
     }
     //add offset to sides of window to go offscreen
 
-    sf::FloatRect playerBounds = player.getGlobalBounds();
+    sf::FloatRect playerBounds = player.getBounds();
     sf::FloatRect windowBounds(-5.0f, -5.0f, window.getSize().x + 65.0f, window.getSize().y + 65.0f);
 
     if (!windowBounds.contains(playerBounds.left + movement.x, playerBounds.top) ||
@@ -162,19 +159,10 @@ void PlatformingState::jumping(float deltaTime)
     player.move(movement);
 }
 
-
-
-void PlatformingState::update(float deltaTime)
+void PlatformingState::collision(float deltaTime)
 {
-    
-
-
-    jumping(deltaTime);    
-    
-   
-
     // Perform bounds checking to prevent player from falling through the ground
-    sf::FloatRect playerBounds = player.getGlobalBounds();
+    sf::FloatRect playerBounds = player.getBounds();
     const float tileSize = 50.0f; // Assuming each tile is a square of size 50x50
 
     for (size_t i = 0; i < levelData.size(); ++i)
@@ -203,7 +191,9 @@ void PlatformingState::update(float deltaTime)
                         // Adjust horizontal position
                         if (dx == std::abs(tileBounds.left - playerRight))
                         {
-                            player.move(-dx, gravity * deltaTime);
+                            player.move(sf::Vector2f(-dx, gravity * deltaTime));
+
+                            //player.move(-dx, gravity * deltaTime);
                             rightside = true;
                             
                             
@@ -211,7 +201,9 @@ void PlatformingState::update(float deltaTime)
                         }
                         else 
                         {
-                            player.move(dx, gravity * deltaTime);
+                            player.move(sf::Vector2f(dx, gravity * deltaTime));
+
+                            //player.move(dx, gravity * deltaTime);
                             leftside = true;
                             
                             
@@ -220,14 +212,16 @@ void PlatformingState::update(float deltaTime)
                     }
                     else
                     {   
-                        //leftside = false;
-                        //rightside = false;
-                        
                         
                         // Adjust vertical position
                         if (dy == std::abs(tileBounds.top - playerBottom))
                         {
-                            movement.y = -dy;
+                            
+                            sf::Vector2f movement(0.0f, -dy);
+                            
+
+
+                            //movement.y = -dy;
                             player.move(movement);
                             //player.move(0.0f, -dy);
                             isJumping = false; // Reset jumping flag if player lands on a tile
@@ -235,10 +229,15 @@ void PlatformingState::update(float deltaTime)
                         }
                         else
                         {
-                            movement.y = dy;
+                            
+
+                            sf::Vector2f movement(0.0f, dy);
+
+                            //movement.y = dy;
                             player.move(movement);
                             //player.move(0.0f, dy);
                         }
+                        
                         
                             
                     }
@@ -253,11 +252,23 @@ void PlatformingState::update(float deltaTime)
             }
         }
     }
+
+}
+
+
+void PlatformingState::update(float deltaTime)
+{
+    
+
+
+    jumping(deltaTime); 
+    collision(deltaTime);   
+    
+    
 }
 
 void PlatformingState::render(sf::RenderWindow& window)
 {
-    //window.draw(ground);
     
     window.draw(player);
     const float tileSize = 50.0f; // Assuming each tile is a square of size 50x50

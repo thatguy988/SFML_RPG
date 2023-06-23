@@ -5,18 +5,19 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <string>
+#include "../entities/Character.hpp"
 
 class PlatformingState : public GameState
 {
 private:
-    sf::RectangleShape player;
+    Character player;
+
     float playerSpeed;
     float jumpSpeed;
     bool isJumping;
     bool leftside;
     bool rightside;
     bool spaceKeyPressed;
-    sf::RectangleShape ground;
 
     std::vector<std::string> levelData;
     sf::Clock jumpTimer; // Added jumpTimer declaration
@@ -24,8 +25,6 @@ private:
     float jumpAcceleration;
     float maxJumpVelocity;
     sf::Vector2f movement;
-    
-
 
 
 
@@ -45,6 +44,7 @@ public:
     std::string getPlayerExitDirection(const sf::RenderWindow& window) const;
     void updatePlayerPosition(const std::string& exitDirection, const sf::RenderWindow& window);
     void jumping(float deltaTime);
+    void collision(float deltaTime);
 
 
 

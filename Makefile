@@ -6,6 +6,7 @@ LIBDIR := lib
 # List all the source files here
 SRCS := $(wildcard $(SRCDIR)/*.cpp)
 SRCS += $(wildcard $(SRCDIR)/states/*.cpp)
+SRCS += $(wildcard $(SRCDIR)/entities/*.cpp)
 OBJS := $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
 EXE := $(BUILDDIR)/main
 
