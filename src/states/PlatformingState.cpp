@@ -3,9 +3,11 @@
 
 
 #include <algorithm>
+#include <SFML/Graphics/View.hpp>
 
 
-PlatformingState::PlatformingState(GameState*& currentState, GameState*& pState, GameState*& cState, const std::vector<std::string>& levelData)
+
+PlatformingState::PlatformingState(GameState*& currentState, GameState*& pState, GameState*& cState, const std::vector<std::vector<int>>& levelData)
     : currentState(currentState), pState(pState), cState(cState), levelData(levelData),
     player("Player", 100, {"Water"}, {"Fire"}, sf::Vector2f(50.0f, 50.0f), sf::Color::Red, sf::Vector2f(100.0f, 400.0f))
 
@@ -21,14 +23,23 @@ PlatformingState::PlatformingState(GameState*& currentState, GameState*& pState,
     
     leftside = false;
     rightside = false;
-    
+
+    view.reset(sf::FloatRect(0.0f, 0.0f, 800.0f, 600.0f));
 
 }
 
-void PlatformingState::setLevelData(const std::vector<std::string>& data)
+void PlatformingState::setLevelData(const std::vector<std::vector<int>>& data)
 {
-    levelData = data;
+    levelData.clear();  // Clear the existing levelData vector
+
+    // Copy each row of the 2D vector to levelData
+    for (const auto& row : data)
+    {
+        levelData.push_back(row);
+    }
 }
+
+
 
 int PlatformingState::getState() const
 {
@@ -39,6 +50,9 @@ void PlatformingState::setSpaceKeyPressed(bool value)
 {
     spaceKeyPressed = value;
 }
+
+
+
 
 void PlatformingState::handleInput(sf::RenderWindow& window)
 {
@@ -53,11 +67,13 @@ void PlatformingState::handleInput(sf::RenderWindow& window)
     {
         movement.x -= playerSpeed;
         rightside = false;
+      
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && !rightside)
     {
         movement.x += playerSpeed;
         leftside = false;
+          
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
     {
@@ -75,66 +91,143 @@ void PlatformingState::handleInput(sf::RenderWindow& window)
     {
         spaceKeyPressed = false;
     }
-    //add offset to sides of window to go offscreen
+    
+    player.move(movement);
+    // Update the view's center position based on the player's position
+    sf::Vector2f playerPosition = player.getPosition();
+    sf::Vector2u windowSize = window.getSize();
+    sf::Vector2f viewCenter = view.getCenter();
+    sf::Vector2f viewSize = view.getSize();
 
-    sf::FloatRect playerBounds = player.getBounds();
-    sf::FloatRect windowBounds(-5.0f, -5.0f, window.getSize().x + 65.0f, window.getSize().y + 65.0f);
+    float minX = viewSize.x / 2.0f;
+    float maxX = levelData[0].size() * tileSize - viewSize.x / 2.0f;
+    float minY = viewSize.y / 2.0f;
+    float maxY = levelData.size() * tileSize - viewSize.y / 2.0f;
 
-    if (!windowBounds.contains(playerBounds.left + movement.x, playerBounds.top) ||
-        !windowBounds.contains(playerBounds.left + playerBounds.width + movement.x, playerBounds.top) ||
-        !windowBounds.contains(playerBounds.left + playerBounds.width + movement.x, playerBounds.top + playerBounds.height) ||
-        !windowBounds.contains(playerBounds.left + movement.x, playerBounds.top + playerBounds.height))
+    if (playerPosition.x < minX)
     {
-        // Adjust movement to prevent moving outside the window
-        movement.x = 0.0f;
+        playerPosition.x = minX;
+    }
+    else if (playerPosition.x > maxX)
+    {
+        playerPosition.x = maxX;
+    }
+
+    if (playerPosition.y < minY)
+    {
+        playerPosition.y = minY;
+    }
+    else if (playerPosition.y > maxY)
+    {
+        playerPosition.y = maxY;
     }
 
 
-    player.move(movement);
+
+
+    view.setCenter(playerPosition);
+
+    // Apply the view to the render window
+    window.setView(view);
 }
 
-std::string PlatformingState::getPlayerExitDirection(const sf::RenderWindow& window) const
+
+
+// std::string PlatformingState::getPlayerExitDirection(const sf::RenderWindow& window) const //for window
+// {
+//     sf::Vector2f playerPosition = player.getPosition();
+//     sf::Vector2u windowSize = window.getSize();
+
+//     std::string exitDirection;
+
+//     if (playerPosition.x < 0) {
+//         // Player exited on the left side of the window
+//         exitDirection = "left";
+//     } else if (playerPosition.x > windowSize.x) {
+//         // Player exited on the right side of the window
+//         exitDirection = "right";
+//     } else if (playerPosition.y < 0) {
+//         // Player exited on the top side of the window
+//         exitDirection = "up";
+//     } else if (playerPosition.y > windowSize.y) {
+//         // Player exited on the bottom side of the window
+//         exitDirection = "down";
+//     }
+
+//     return exitDirection;
+// }
+
+std::string PlatformingState::getPlayerExitDirection(const sf::RenderWindow& window) const //for view
 {
     sf::Vector2f playerPosition = player.getPosition();
-    sf::Vector2u windowSize = window.getSize();
+    sf::Vector2f viewCenter = view.getCenter();
+    sf::Vector2f viewSize = view.getSize();
 
     std::string exitDirection;
 
-    if (playerPosition.x < 0) {
-        // Player exited on the left side of the window
+    if (playerPosition.x < viewCenter.x - viewSize.x / 2) {
+        // Player exited on the left side of the view
         exitDirection = "left";
-    } else if (playerPosition.x > windowSize.x) {
-        // Player exited on the right side of the window
+    } else if (playerPosition.x > viewCenter.x + viewSize.x / 2) {
+        // Player exited on the right side of the view
         exitDirection = "right";
-    } else if (playerPosition.y < 0) {
-        // Player exited on the top side of the window
+    } else if (playerPosition.y < viewCenter.y - viewSize.y / 2) {
+        // Player exited on the top side of the view
         exitDirection = "up";
-    } else if (playerPosition.y > windowSize.y) {
-        // Player exited on the bottom side of the window
+    } else if (playerPosition.y > viewCenter.y + viewSize.y / 2) {
+        // Player exited on the bottom side of the view
         exitDirection = "down";
     }
 
     return exitDirection;
 }
 
-void PlatformingState::updatePlayerPosition(const std::string& exitDirection,const sf::RenderWindow& window)
+
+void PlatformingState::updatePlayerPosition(const std::string& exitDirection)
 {
-    sf::Vector2u windowSize = window.getSize();
-    sf::Vector2f playerPosition = player.getPosition();
-    sf::Vector2f newPosition;
+    int spawnMarker = 0;
 
-    if (exitDirection == "left") {
-        newPosition = sf::Vector2f(windowSize.x, playerPosition.y);
-    } else if (exitDirection == "right") {
-        newPosition = sf::Vector2f(0, playerPosition.y);
-    } else if (exitDirection == "up") {
-        newPosition = sf::Vector2f(playerPosition.x, windowSize.y);
-    } else if (exitDirection == "down") {
-        newPosition = sf::Vector2f(playerPosition.x, 0);
+    // Determine the spawn marker value based on the exit direction
+    if (exitDirection == "up")
+    {
+        spawnMarker = 2;
     }
+    else if (exitDirection == "down")
+    {
+        spawnMarker = 3;
+    }
+    else if (exitDirection == "right")
+    {
+        spawnMarker = 4;
+    }
+    else if (exitDirection == "left")
+    {
+        spawnMarker = 5;
+    }
+    sf::Vector2f spawnPosition;
 
-    player.setPosition(newPosition);
+
+    // Find the spawn marker in the level data
+    for (size_t i = 0; i < levelData.size(); ++i)
+    {
+        const std::vector<int>& row = levelData[i];
+        for (size_t j = 0; j < row.size(); ++j)
+        {
+            if (row[j] == spawnMarker) 
+            {
+                // Set the player's spawn position
+                spawnPosition.x = static_cast<float>(j) * tileSize;
+                spawnPosition.y = static_cast<float>(i) * tileSize;
+                player.setPosition(spawnPosition);
+
+
+                return; 
+            }
+        }
+    }
+    
 }
+
 
 void PlatformingState::jumping(float deltaTime)
 {
@@ -163,14 +256,12 @@ void PlatformingState::collision(float deltaTime)
 {
     // Perform bounds checking to prevent player from falling through the ground
     sf::FloatRect playerBounds = player.getBounds();
-    const float tileSize = 50.0f; // Assuming each tile is a square of size 50x50
 
     for (size_t i = 0; i < levelData.size(); ++i)
     {
-        const std::string& row = levelData[i];
-        for (size_t j = 0; j < row.size(); ++j)
+        for (size_t j = 0; j < levelData[i].size(); ++j)
         {
-            if (row[j] == '1') // Tile present
+            if (levelData[i][j] == 1) // Tile present
             {
                 sf::FloatRect tileBounds(static_cast<float>(j) * tileSize, static_cast<float>(i) * tileSize, tileSize, tileSize);
 
@@ -192,57 +283,29 @@ void PlatformingState::collision(float deltaTime)
                         if (dx == std::abs(tileBounds.left - playerRight))
                         {
                             player.move(sf::Vector2f(-dx, gravity * deltaTime));
-
-                            //player.move(-dx, gravity * deltaTime);
                             rightside = true;
-                            
-                            
-                            
-                        }
-                        else 
-                        {
-                            player.move(sf::Vector2f(dx, gravity * deltaTime));
-
-                            //player.move(dx, gravity * deltaTime);
-                            leftside = true;
-                            
-                            
-                            
-                        }
-                    }
-                    else
-                    {   
-                        
-                        // Adjust vertical position
-                        if (dy == std::abs(tileBounds.top - playerBottom))
-                        {
-                            
-                            sf::Vector2f movement(0.0f, -dy);
-                            
-
-
-                            //movement.y = -dy;
-                            player.move(movement);
-                            //player.move(0.0f, -dy);
-                            isJumping = false; // Reset jumping flag if player lands on a tile
-                            
                         }
                         else
                         {
-                            
-
-                            sf::Vector2f movement(0.0f, dy);
-
-                            //movement.y = dy;
-                            player.move(movement);
-                            //player.move(0.0f, dy);
+                            player.move(sf::Vector2f(dx, gravity * deltaTime));
+                            leftside = true;
                         }
-                        
-                        
-                            
                     }
-                    
-                    
+                    else
+                    {
+                        // Adjust vertical position
+                        if (dy == std::abs(tileBounds.top - playerBottom))
+                        {
+                            sf::Vector2f movement(0.0f, -dy);
+                            player.move(movement);
+                            isJumping = false; // Reset jumping flag if player lands on a tile
+                        }
+                        else
+                        {
+                            sf::Vector2f movement(0.0f, dy);
+                            player.move(movement);
+                        }
+                    }
                 }
                 else
                 {
@@ -252,33 +315,29 @@ void PlatformingState::collision(float deltaTime)
             }
         }
     }
-
 }
+
 
 
 void PlatformingState::update(float deltaTime)
 {
     
-
-
     jumping(deltaTime); 
     collision(deltaTime);   
-    
-    
 }
+
 
 void PlatformingState::render(sf::RenderWindow& window)
 {
-    
+    window.setView(view);
     window.draw(player);
-    const float tileSize = 50.0f; // Assuming each tile is a square of size 50x50
 
     for (size_t i = 0; i < levelData.size(); ++i)
     {
-        const std::string& row = levelData[i];
+        const std::vector<int>& row = levelData[i];
         for (size_t j = 0; j < row.size(); ++j)
         {
-            if (row[j] == '1') // Tile present
+            if (row[j] == 1) // Tile present
             {
                 sf::RectangleShape tile(sf::Vector2f(tileSize, tileSize));
                 tile.setFillColor(sf::Color::Blue);
@@ -287,11 +346,8 @@ void PlatformingState::render(sf::RenderWindow& window)
             }
         }
     }
-    
-
-
-    
 }
+
 
 
 

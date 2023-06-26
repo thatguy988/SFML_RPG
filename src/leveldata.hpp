@@ -7,8 +7,10 @@
 struct LevelNode
 {
     std::string id;
-    std::vector<std::string> levelData;
+    std::vector<std::vector<int>> levelData; 
     std::vector<std::string> connectedNodes;
+    int width; // Width of the level used for view stay in boundaries
+    int height; // Height of the level used for view stay in boundaries
 };
 
 class LevelGraph
@@ -17,26 +19,14 @@ private:
     std::vector<LevelNode> nodes;
 
 public:
-    void AddNode(const LevelNode& node)
-    {
-        nodes.push_back(node);
-    }
-
-    const LevelNode& GetNode(int index) const
-    {
-        return nodes.at(index);
-    }
-
-    int GetNodeCount() const
-    {
-        return nodes.size();
-    }
+    void AddNode(const LevelNode& node);
+    const LevelNode& GetNode(int index) const;
+    int GetNodeCount() const;
 };
 
 const LevelGraph& GetLevelGraph();
-const std::vector<std::string> getLevelData(const std::string& nodeId);
+const std::vector<std::vector<int>> getLevelData(const std::string& nodeId);
+
 std::string getNextNode(const std::string& currentNodeId, const std::string& exitDirection);
 
-
 #endif // LEVELDATA_HPP
-

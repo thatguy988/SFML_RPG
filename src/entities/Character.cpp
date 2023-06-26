@@ -63,6 +63,7 @@ void Character::setPosition(const sf::Vector2f& position)
     shape.setPosition(position);
 }
 
+
 void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     target.draw(shape, states);

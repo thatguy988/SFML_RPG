@@ -22,7 +22,11 @@ int main()
     GameState* cState = nullptr;
 
     std::string nodeId = "Node1";
-    std::vector<std::string> levelData = getLevelData(nodeId);
+    //std::vector<std::string> levelData = getLevelData(nodeId);
+    std::vector<std::vector<int>> levelData;
+    levelData = getLevelData(nodeId);
+
+    
     
 
     PlatformingState platformingState(currentState, pState, cState, levelData);
@@ -71,7 +75,7 @@ int main()
                     nodeId = nextNodeId;
                     levelData = getLevelData(nodeId);
                     platformingState.setLevelData(levelData);
-                    platformingState.updatePlayerPosition(exitDirection,window);
+                    platformingState.updatePlayerPosition(exitDirection);
                 }
                 
                 currentState->render(window);

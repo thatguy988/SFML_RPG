@@ -115,6 +115,8 @@ void PauseMenuState::update(float deltaTime)
 
 void PauseMenuState::render(sf::RenderWindow& window)
 {
+    window.setView(window.getDefaultView()); // allow view in platforminstate not to effect pausemenu text
+
     window.draw(titleText);
     window.draw(resumeText);
     window.draw(saveText);
